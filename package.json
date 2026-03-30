@@ -8,11 +8,17 @@
     "@mariozechner/pi-coding-agent": "*"
   },
   "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "pi-extension"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/lulucatdev/pi-google-ai-studio-provider.git"
   },
   "pi": {
-    "extensions": "./extensions"
+    "extensions": [
+      "./extensions"
+    ]
   }
 }
