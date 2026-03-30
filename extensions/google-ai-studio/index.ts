@@ -1,4 +1,5 @@
-import type { ExtensionAPI, OAuthCredentials, OAuthFlowCallbacks } from "@anthropic-ai/sdk";
+import type { OAuthCredentials, OAuthLoginCallbacks } from "@mariozechner/pi-ai";
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 
 const PROVIDER_ID = "google-ai-studio";
 const PROVIDER_NAME = "Google AI Studio";
@@ -127,43 +128,41 @@ async function fetchModelsFromModelsDev(): Promise<ProviderModel[] | undefined> 
 export default function googleAiStudioExtension(pi: ExtensionAPI) {
 	let currentModels = DEFAULT_MODELS;
 
+	const providerConfig = (models: ProviderModel[]) => ({
+		baseUrl: baseUrl,
+		apiKey: "GOOGLE_AI_STUDIO_API_KEY",
+		api: "openai-completions" as const,
+		models,
+		oauth: {
+			name: PROVIDER_NAME,
+			login: async (callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> => {
+				const key = (
+					await callbacks.onPrompt({ message: `Paste ${PROVIDER_NAME} API key:` })
+				).trim();
+				if (!key) throw new Error("No API key provided.");
+
+				const urlInput = (
+					await callbacks.onPrompt({ message: `Base URL (Enter to keep ${baseUrl}):` })
+				).trim();
+				if (urlInput) {
+					baseUrl = urlInput.replace(/\/+$/, "");
+					pi.registerProvider(PROVIDER_ID, providerConfig(currentModels));
+				}
+
+				return {
+					access: key,
+					refresh: key,
+					expires: Date.now() + 3650 * 24 * 60 * 60 * 1000,
+				};
+			},
+			refreshToken: async (credentials: OAuthCredentials): Promise<OAuthCredentials> => credentials,
+			getApiKey: (credentials: OAuthCredentials) => credentials.access,
+		},
+	});
+
 	function registerWithModels(models: ProviderModel[]) {
 		currentModels = models;
-		pi.registerProvider({
-			id: PROVIDER_ID,
-			name: PROVIDER_NAME,
-			api: "openai-completions",
-			baseUrl: baseUrl,
-			apiKeyEnvVarName: "GOOGLE_AI_STUDIO_API_KEY",
-			oauth: {
-				login: async (callbacks: OAuthFlowCallbacks): Promise<OAuthCredentials | undefined> => {
-					const apiKey = await callbacks.promptForText("Enter your Google AI Studio API key:");
-					if (!apiKey) return undefined;
-
-					const urlInput = await callbacks.promptForText(`Enter base URL (leave empty for ${baseUrl}):`);
-					if (urlInput?.trim()) {
-						baseUrl = urlInput.trim().replace(/\/+$/, "");
-						registerWithModels(currentModels);
-					}
-
-					return {
-						access: apiKey,
-						refresh: apiKey,
-						expires: Date.now() + 3650 * 24 * 60 * 60 * 1000,
-					};
-				},
-				refresh: async (credentials: OAuthCredentials): Promise<OAuthCredentials> => credentials,
-			},
-			models: models.map((m) => ({
-				id: m.id,
-				name: m.name,
-				reasoning: m.reasoning,
-				input: m.input,
-				cost: m.cost,
-				contextWindow: m.contextWindow,
-				maxTokens: m.maxTokens,
-			})),
-		});
+		pi.registerProvider(PROVIDER_ID, providerConfig(models));
 	}
 
 	registerWithModels(DEFAULT_MODELS);
