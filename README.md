@@ -16,12 +16,13 @@ Alternatively, set the `GOOGLE_AI_STUDIO_API_KEY` environment variable.
 
 ## Custom Base URL
 
-During `/login`, you will be prompted for an optional custom base URL. This is useful for relay/proxy setups (e.g., [Pincc CRS](https://github.com/Wei-Shaw/claude-relay-service)).
-
-You can also set the base URL via environment variable:
+To use a custom relay or proxy server instead of the official Google API, set the base URL via environment variable **before starting pi**:
 
 ```bash
 export GOOGLE_AI_STUDIO_BASE_URL="https://your-relay.example.com/gemini/v1beta/openai"
+pi
 ```
 
 The default base URL is `https://generativelanguage.googleapis.com/v1beta/openai` (Google's OpenAI-compatible endpoint).
+
+**Note:** The base URL must be set via environment variable. Changes made after pi has started will not take effect until restart.

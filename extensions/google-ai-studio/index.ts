@@ -157,20 +157,4 @@ export default function googleAiStudioExtension(pi: ExtensionAPI) {
 		if (models) registerWithModels(models);
 	});
 
-	pi.registerCommand("gai-base-url", {
-		description: "Set or show Google AI Studio base URL",
-		handler: async (args, ctx) => {
-			let url = args.trim().replace(/\/+$/, "");
-			if (!url) {
-				url = (await ctx.ui.input("Google AI Studio Base URL", baseUrl))?.trim().replace(/\/+$/, "") ?? "";
-			}
-			if (!url) {
-				ctx.ui.notify(`Current: ${baseUrl}`, "info");
-				return;
-			}
-			baseUrl = url;
-			registerWithModels(currentModels);
-			ctx.ui.notify(`Base URL set to: ${baseUrl}`, "info");
-		},
-	});
 }
