@@ -1,0 +1,18 @@
+{
+  "name": "pi-google-ai-studio-provider",
+  "version": "0.1.0",
+  "description": "Google AI Studio provider for pi — supports custom base URL for relay/proxy setups",
+  "type": "module",
+  "peerDependencies": {
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lulucatdev/pi-google-ai-studio-provider.git"
+  },
+  "pi": {
+    "extensions": "./extensions"
+  }
+}
