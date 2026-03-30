@@ -122,10 +122,14 @@ async function fetchModelsFromModelsDev(): Promise<ProviderModel[] | undefined> 
 export default function googleAiStudioExtension(pi: ExtensionAPI) {
 	let currentModels = DEFAULT_MODELS;
 
+	// Detect if using native Google API (relays often use /v1beta without /openai)
+	// Native API uses :generateContent format, OpenAI-compatible uses /chat/completions
+	const isNativeApi = !baseUrl.includes("/openai");
+
 	const providerConfig = (models: ProviderModel[]) => ({
 		baseUrl: baseUrl,
 		apiKey: "GOOGLE_AI_STUDIO_API_KEY",
-		api: "openai-completions" as const,
+		api: (isNativeApi ? "google-generative-ai" : "openai-completions") as const,
 		models,
 		oauth: {
 			name: PROVIDER_NAME,
