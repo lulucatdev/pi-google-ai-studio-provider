@@ -166,9 +166,12 @@ export default function googleAiStudioExtension(pi: ExtensionAPI) {
 	pi.registerCommand("gai-base-url", {
 		description: "Set or show Google AI Studio base URL",
 		handler: async (args, ctx) => {
-			const url = args.trim().replace(/\/+$/, "");
+			let url = args.trim().replace(/\/+$/, "");
 			if (!url) {
-				ctx.ui.notify(`Current base URL: ${baseUrl}`, "info");
+				url = (await ctx.ui.input("Google AI Studio Base URL", baseUrl))?.trim().replace(/\/+$/, "") ?? "";
+			}
+			if (!url) {
+				ctx.ui.notify(`Current: ${baseUrl}`, "info");
 				return;
 			}
 			baseUrl = url;
