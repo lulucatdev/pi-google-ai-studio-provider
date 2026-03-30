@@ -5,7 +5,7 @@ const PROVIDER_ID = "google-ai-studio";
 const PROVIDER_NAME = "Google AI Studio";
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const MODELS_DEV_URL = "https://models.dev/api.json";
-const MODELS_DEV_PROVIDER_KEY = "google";
+const MODELS_DEV_PROVIDER_KEY = "google-ai-studio";
 
 type ProviderModel = {
 	id: string;
@@ -73,13 +73,9 @@ function toFiniteNumber(value: unknown, fallback = 0): number {
 }
 
 function normalizeInput(value: unknown): Array<"text" | "image"> {
-	if (Array.isArray(value)) {
-		const lower = value.map((v) => String(v).toLowerCase());
-		if (lower.includes("image") || lower.includes("video")) {
-			return ["text", "image"];
-		}
-	}
-	return ["text"];
+	if (!isRecord(value) || !Array.isArray(value.input)) return ["text"];
+	const inputs = value.input.filter((item): item is string => typeof item === "string");
+	return inputs.includes("image") || inputs.includes("video") ? ["text", "image"] : ["text"];
 }
 
 function normalizeProviderModel(id: string, value: unknown): ProviderModel | undefined {
@@ -92,7 +88,7 @@ function normalizeProviderModel(id: string, value: unknown): ProviderModel | und
 		id,
 		name: typeof value.name === "string" ? value.name : id,
 		reasoning: value.reasoning === true,
-		input: normalizeInput(value.input ?? (isRecord(value.modalities) ? value.modalities : undefined)),
+		input: normalizeInput(value.modalities),
 		cost: {
 			input: toFiniteNumber(cost.input ?? cost.input_price),
 			output: toFiniteNumber(cost.output ?? cost.output_price),
@@ -108,18 +104,16 @@ async function fetchModelsFromModelsDev(): Promise<ProviderModel[] | undefined> 
 	try {
 		const res = await fetch(MODELS_DEV_URL);
 		if (!res.ok) return undefined;
-		const data = await res.json();
-		if (!isRecord(data)) return undefined;
+		const data = (await res.json()) as Record<string, unknown>;
+		const provider = data[MODELS_DEV_PROVIDER_KEY];
+		if (!isRecord(provider) || !isRecord(provider.models)) return undefined;
 
-		const providerData = data[MODELS_DEV_PROVIDER_KEY];
-		if (!isRecord(providerData)) return undefined;
+		const models = Object.entries(provider.models as Record<string, unknown>)
+			.map(([id, val]) => normalizeProviderModel(id, val))
+			.filter((m): m is ProviderModel => Boolean(m))
+			.sort((a, b) => a.id.localeCompare(b.id));
 
-		const models: ProviderModel[] = [];
-		for (const [id, value] of Object.entries(providerData)) {
-			const model = normalizeProviderModel(id, value);
-			if (model) models.push(model);
-		}
-		return models.length > 0 ? models.sort((a, b) => a.id.localeCompare(b.id)) : undefined;
+		return models.length > 0 ? models : undefined;
 	} catch {
 		return undefined;
 	}
