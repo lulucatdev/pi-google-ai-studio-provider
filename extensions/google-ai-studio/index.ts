@@ -141,14 +141,6 @@ export default function googleAiStudioExtension(pi: ExtensionAPI) {
 				).trim();
 				if (!key) throw new Error("No API key provided.");
 
-				const urlInput = (
-					await callbacks.onPrompt({ message: `Base URL (Enter to keep ${baseUrl}):` })
-				).trim();
-				if (urlInput) {
-					baseUrl = urlInput.replace(/\/+$/, "");
-					pi.registerProvider(PROVIDER_ID, providerConfig(currentModels));
-				}
-
 				return {
 					access: key,
 					refresh: key,
@@ -169,5 +161,19 @@ export default function googleAiStudioExtension(pi: ExtensionAPI) {
 
 	fetchModelsFromModelsDev().then((models) => {
 		if (models) registerWithModels(models);
+	});
+
+	pi.registerCommand("gai-base-url", {
+		description: "Set or show Google AI Studio base URL",
+		handler: async (args, ctx) => {
+			const url = args.trim().replace(/\/+$/, "");
+			if (!url) {
+				ctx.ui.notify(`Current base URL: ${baseUrl}`, "info");
+				return;
+			}
+			baseUrl = url;
+			registerWithModels(currentModels);
+			ctx.ui.notify(`Base URL set to: ${baseUrl}`, "info");
+		},
 	});
 }
