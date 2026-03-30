@@ -119,9 +119,7 @@ async function fetchModelsFromModelsDev(): Promise<ProviderModel[] | undefined> 
 	}
 }
 
-export default function googleAiStudioExtension(pi: ExtensionAPI) {
-	let currentModels = DEFAULT_MODELS;
-
+export default async function googleAiStudioExtension(pi: ExtensionAPI) {
 	// Detect if using native Google API (relays often use /v1beta without /openai)
 	// Native API uses :generateContent format, OpenAI-compatible uses /chat/completions
 	const isNativeApi = !baseUrl.includes("/openai");
@@ -150,15 +148,13 @@ export default function googleAiStudioExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	function registerWithModels(models: ProviderModel[]) {
-		currentModels = models;
-		pi.registerProvider(PROVIDER_ID, providerConfig(models));
-	}
+	// Await models.dev fetch (with timeout) so models are registered before
+	// Pi resolves scoped models — avoids enabledModels race condition.
+	const FETCH_TIMEOUT_MS = 4000;
+	const fetched = await Promise.race([
+		fetchModelsFromModelsDev(),
+		new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), FETCH_TIMEOUT_MS)),
+	]);
 
-	registerWithModels(DEFAULT_MODELS);
-
-	fetchModelsFromModelsDev().then((models) => {
-		if (models) registerWithModels(models);
-	});
-
+	pi.registerProvider(PROVIDER_ID, providerConfig(fetched ?? DEFAULT_MODELS));
 }
