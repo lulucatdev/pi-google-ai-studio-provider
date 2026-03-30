@@ -5,7 +5,7 @@ const PROVIDER_ID = "google-ai-studio";
 const PROVIDER_NAME = "Google AI Studio";
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const MODELS_DEV_URL = "https://models.dev/api.json";
-const MODELS_DEV_PROVIDER_KEY = "google-ai-studio";
+const MODELS_DEV_PROVIDER_KEY = "google";
 
 type ProviderModel = {
 	id: string;
