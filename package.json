@@ -4,8 +4,8 @@
   "description": "Google AI Studio provider for pi — supports custom base URL for relay/proxy setups",
   "type": "module",
   "peerDependencies": {
-    "@mariozechner/pi-ai": "*",
-    "@mariozechner/pi-coding-agent": "*"
+    "@earendil-works/pi-ai": "^0.77.0",
+    "@earendil-works/pi-coding-agent": "^0.77.0"
   },
   "license": "MIT",
   "keywords": [

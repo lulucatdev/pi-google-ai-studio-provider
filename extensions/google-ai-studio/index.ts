@@ -1,5 +1,5 @@
-import type { OAuthCredentials, OAuthLoginCallbacks } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { OAuthCredentials, OAuthLoginCallbacks } from "@earendil-works/pi-ai";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const PROVIDER_ID = "google-ai-studio";
 const PROVIDER_NAME = "Google AI Studio";
@@ -126,7 +126,7 @@ export default async function googleAiStudioExtension(pi: ExtensionAPI) {
 
 	const providerConfig = (models: ProviderModel[]) => ({
 		baseUrl: baseUrl,
-		apiKey: "GOOGLE_AI_STUDIO_API_KEY",
+		apiKey: "$GOOGLE_AI_STUDIO_API_KEY",
 		api: (isNativeApi ? "google-generative-ai" : "openai-completions") as const,
 		models,
 		oauth: {
